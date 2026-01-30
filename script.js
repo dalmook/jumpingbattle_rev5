@@ -48,6 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const diffButtons = $$('.difficulty-buttons .diff');
   const diffInput = $('#difficulty');
+  
+  // ✅ 2/3번 동의(필수)
+  const agree23 = $('#agree23');
+
 
   // ✅ 2/3번 동의(필수)
   const agree23 = $('#agree23');
@@ -213,6 +217,16 @@ window.addEventListener('resize', syncStickybarHeight);
 
   diffButtons.forEach(btn => {
     btn.addEventListener('click', () => {
+      // ✅ 동의 체크 안 했으면 난이도 선택 막고 안내
+      if (agree23 && !agree23.checked) {
+        showSnack('동의 먼저 체크해주세요 🙂', 'warn', 1600);
+        vibrate(20);
+  
+        const card = agree23.closest('.agree-card') || agree23;
+        scrollToField(card);
+        return;
+      }
+  
       diffButtons.forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-checked', 'false'); });
       btn.classList.add('selected');
       btn.setAttribute('aria-checked', 'true');
@@ -221,6 +235,7 @@ window.addEventListener('resize', syncStickybarHeight);
       refresh();
     });
   });
+
 
   // 인원 카운터 +/-
   function adjustCount(id, delta) {
@@ -255,6 +270,10 @@ window.addEventListener('resize', syncStickybarHeight);
   });
 
   $('#teamName').addEventListener('input', refresh);
+  
+  // ✅ 동의 체크 변경 시 제출 가능 여부 갱신
+  agree23?.addEventListener('change', refresh);
+
 
   // 차량번호 숫자 4자리 제한
   $('#vehicle').addEventListener('input', (e) => {
@@ -328,7 +347,8 @@ window.addEventListener('resize', syncStickybarHeight);
     const youth = Number($('#youthCount').value || 0);
     const team = ($('#teamName').value || '').trim();
     const diff = diffInput.value;
-    return !!room && (adult + youth > 0) && !!team && !!diff && !!agree23?.checked;
+    return !!room && (adult + youth > 0) && !!team && !!diff && (!agree23 || agree23.checked);
+
   }
 
   function refresh() {
@@ -377,7 +397,8 @@ window.addEventListener('resize', syncStickybarHeight);
     if (adult + youth <= 0) return '인원 수를 입력해주세요.';
     if (!($('#teamName').value || '').trim()) return '팀명을 입력해주세요.';
     if (!diffInput.value) return '난이도를 선택해주세요.';
-    if (!agree23?.checked) return '②/③ 동의를 체크해주세요.';
+    if (agree23 && !agree23.checked) return '동의 먼저 체크해주세요.';
+
     return '';
   }
 
