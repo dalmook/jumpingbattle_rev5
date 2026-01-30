@@ -293,6 +293,28 @@ body::before{
   flex:0 0 auto;
 }
 .agree-row b{font-weight:1000;}
+.agree-text{
+  margin: 6px 0 10px;
+  line-height: 1.45;
+}
+
+.agree-check{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1.5px dashed rgba(108,99,255,0.28); /* 빨강X: 은은한 포인트 */
+  border-radius:14px;
+  background:rgba(255,255,255,0.82);
+  cursor:pointer;
+}
+
+.agree-check input[type="checkbox"]{
+  width:22px;
+  height:22px;
+  accent-color: var(--brand);
+  flex:0 0 auto;
+}
 
 
 /* 방 선택 */
