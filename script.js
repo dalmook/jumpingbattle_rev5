@@ -52,10 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ✅ 2/3번 동의(필수)
   const agree23 = $('#agree23');
 
-
-  // ✅ 2/3번 동의(필수)
-  const agree23 = $('#agree23');
-
   const stepperFill = $('#stepperFill');
   const dots = $$('.dot');
   // ✅ 예약시간 드롭다운
