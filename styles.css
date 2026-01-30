@@ -250,15 +250,38 @@ body::before{
 .field{display:flex; flex-direction:column; gap:8px;}
 .field__label{font-weight:900;}
 
+/* ✅ 동의 카드 강조(빨강X: 브랜드 보라 + 민트 포인트) */
+.agree-card{
+  position:relative;
+  overflow:hidden;
+  border:2px solid rgba(108,99,255,0.28);           /* 보라 테두리 */
+  box-shadow:0 10px 26px rgba(108,99,255,0.12);      /* 은은한 글로우 */
+  background:linear-gradient(180deg,
+    rgba(108,99,255,0.08),
+    rgba(255,255,255,0.88)
+  );
+}
+.agree-card::before{
+  content:"";
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:7px;                                         /* 포인트 라인 */
+  background:linear-gradient(180deg,
+    rgba(108,99,255,0.95),
+    rgba(0,205,255,0.55)
+  );
+  opacity:0.9;
+}
+
 /* ✅ 동의 한줄 체크 */
 .agree-row{
   display:flex;
   align-items:center;
   gap:10px;
   padding:12px 12px;
-  border:1.5px solid var(--border);
+  border:1.5px solid rgba(108,99,255,0.18);          /* 내부 박스도 살짝 포인트 */
   border-radius:16px;
-  background:rgba(255,255,255,0.78);
+  background:rgba(255,255,255,0.82);
   font-weight:850;
   line-height:1.35;
   cursor:pointer;
@@ -270,6 +293,7 @@ body::before{
   flex:0 0 auto;
 }
 .agree-row b{font-weight:1000;}
+
 
 /* 방 선택 */
 .seg-row{display:flex; gap:10px; flex-wrap:wrap;}
