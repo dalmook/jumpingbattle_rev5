@@ -51,21 +51,6 @@
       <input type="hidden" id="roomSize" name="roomSize" required />
       <input type="hidden" id="difficulty" name="difficulty" required />
 
-      <!-- ✅ 2/3번 동의(필수) : 한 줄 체크 -->
-      <section class="card agree-card">
-        <div class="card__head">
-          <h3><span class="step">0</span> 동의</h3>
-          <span class="chip chip--soft">필수</span>
-        </div>
-
-        <label class="agree-row" for="agree23">
-          <input type="checkbox" id="agree23" name="agree23" required />
-          <span>
-            부상/사고에 대한 본인 책임 및 광과민성 발작에 대해 인지 하였음을 <b>동의합니다</b>
-          </span>
-        </label>
-      </section>
-
       <!-- 1. 방 선택 -->
       <section class="card">
     <div class="card__head">
@@ -143,6 +128,23 @@
           <div class="mini-hint">TIP: 랭킹보드에 남을 이름, 임팩트 있게! (최대 10자)</div>
         </div>
       </section>
+      
+      <!-- ✅ 2/3번 동의(필수) : 난이도 선택 전 체크 -->
+      <section class="card agree-card">
+        <div class="card__head">
+          <h3><span class="step">0</span> 동의</h3>
+          <span class="chip chip--soft">필수</span>
+        </div>
+
+        <label class="agree-row" for="agree23">
+          <input type="checkbox" id="agree23" name="agree23" required />
+          <span>
+            부상/사고에 대한 본인 책임 및 광과민성 발작에 대해 인지하였음을 <b>동의합니다</b>
+          </span>
+        </label>
+      </section>
+
+      <!-- 3. 난이도 -->
 
       <!-- 3. 난이도 -->
       <section class="card">
