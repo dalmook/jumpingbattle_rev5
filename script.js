@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = $('#reservationForm');
   const result = $('#result');
   const submitBtn = $('#submitBtn');
+  const submitLabel = submitBtn.querySelector('.btn__label');
+  const defaultSubmitLabel = submitLabel?.textContent || '최종 완료';
   const resetBtn = $('#resetBtn');
 
   const priceText = $('#priceText');
@@ -356,6 +358,31 @@ window.addEventListener('resize', syncStickybarHeight);
     updateDraft();
     updateStepper();
     updateSummary();
+
+    const hasNewEntry =
+      !!roomInput.value ||
+      !!diffInput.value ||
+      Number($('#adultCount').value || 0) > 0 ||
+      Number($('#youthCount').value || 0) > 0 ||
+      !!($('#teamName').value || '').trim() ||
+      !!($('#vehicle').value || '').trim() ||
+      !!agree23?.checked;
+
+    if (hasNewEntry && result.classList.contains('result--success')) {
+      result.hidden = true;
+      result.className = 'result';
+      result.innerHTML = '';
+    }
+
+    if (hasNewEntry && submitBtn.classList.contains('submitted')) {
+      submitBtn.classList.remove('submitted');
+      if (submitLabel) submitLabel.textContent = defaultSubmitLabel;
+    }
+
+    if (isSubmitting) {
+      submitBtn.disabled = true;
+      return;
+    }
     submitBtn.disabled = !isReadyToSubmit();
   }
 
@@ -421,8 +448,44 @@ window.addEventListener('resize', syncStickybarHeight);
     }
   }
 
+  function setSubmitState(state) {
+    submitBtn.classList.toggle('loading', state === 'submitting');
+    submitBtn.classList.toggle('submitted', state === 'submitted');
+    submitBtn.setAttribute('aria-busy', state === 'submitting' ? 'true' : 'false');
+
+    if (state === 'submitting') {
+      if (submitLabel) submitLabel.textContent = '전송 중입니다';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    if (state === 'submitted') {
+      if (submitLabel) submitLabel.textContent = '전송 완료';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    if (submitLabel) submitLabel.textContent = defaultSubmitLabel;
+    submitBtn.disabled = !isReadyToSubmit();
+  }
+
+  function showSubmitComplete(payload) {
+    const team = payload.teamName ? `팀명: ${payload.teamName}` : '';
+    const time = payload.walkInTime ? `예약시간: ${payload.walkInTime}` : '';
+    const details = [time, team].filter(Boolean).join(' · ');
+
+    result.hidden = false;
+    result.className = 'result result--success';
+    result.innerHTML = `
+      <div class="result__title">전송 완료</div>
+      <div class="result__body">예약 정보가 접수되었습니다. 같은 정보는 다시 입력하지 않아도 됩니다.</div>
+      ${details ? `<div class="result__meta">${details}</div>` : ''}
+    `;
+  }
+
   // 전체 리셋
-  function hardReset() {
+  function hardReset(options = {}) {
+    const { clearResult = true } = options;
     form.reset();
 
     userPickedTime = false;
@@ -436,14 +499,18 @@ window.addEventListener('resize', syncStickybarHeight);
 
     clearDraft();
 
-    result.hidden = true;
-    result.innerHTML = '';
+    if (clearResult) {
+      result.hidden = true;
+      result.className = 'result';
+      result.innerHTML = '';
+    }
 
     refresh();
   }
 
   resetBtn.addEventListener('click', () => {
     hardReset();
+    setSubmitState('idle');
     showSnack('초기화했어요 🙂', 'ok', 1400);
     vibrate(12);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -488,26 +555,27 @@ window.addEventListener('resize', syncStickybarHeight);
     isSubmitting = true;
     lastSubmitFingerprint = fingerprint;
     lastSubmitAt = now;
-    submitBtn.classList.add('loading');
-    submitBtn.disabled = true;
+    setSubmitState('submitting');
+    showSnack('전송 중입니다. 잠시만 기다려주세요.', 'ok', 2400);
 
     const ok = await sendPayload(payload);
 
     isSubmitting = false;
-    submitBtn.classList.remove('loading');
 
     if (ok) {
       vibrate(15);
-      result.hidden = false;
-      result.innerHTML = `✅ <strong>전송 완료!</strong><br>예약 정보가 정상 전송되었습니다 🎉`;
-      showSnack('예약 정보가 전송되었습니다.', 'ok', 2000);
 
       // 성공 후 리셋
-      hardReset();
+      hardReset({ clearResult: false });
+      showSubmitComplete(payload);
+      setSubmitState('submitted');
+      showSnack('전송 완료. 다시 입력하지 않아도 됩니다.', 'ok', 3000);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
+      lastSubmitFingerprint = '';
+      lastSubmitAt = 0;
+      setSubmitState('idle');
       showSnack('전송에 실패했습니다. 네트워크 상태 확인 후 다시 시도해주세요.', 'error', 2500);
-      submitBtn.disabled = !isReadyToSubmit();
     }
   });
 
