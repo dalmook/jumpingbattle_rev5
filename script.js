@@ -58,6 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const walkInInput = $('#walkInTime');
   const walkInSelect = $('#walkInSelect');
   let userPickedTime = false;
+  let isSubmitting = false;
+  let lastSubmitFingerprint = '';
+  let lastSubmitAt = 0;
+  const DUPLICATE_SUBMIT_MS = 60 * 1000;
 
   const timeToMin = (t) => {
     const [h, m] = String(t).split(':').map(Number);
@@ -398,36 +402,22 @@ window.addEventListener('resize', syncStickybarHeight);
     return '';
   }
 
-  // 전송 (타임아웃+재시도)
+  function getPayloadFingerprint(payload) {
+    return JSON.stringify(payload);
+  }
+
+  // 전송
   async function sendPayload(payload) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6500);
     try {
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal
+        body: JSON.stringify(payload)
       });
-      clearTimeout(timer);
       return true;
     } catch (e) {
-      clearTimeout(timer);
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        return true;
-      } catch (e2) {
-        try {
-          const ok = navigator.sendBeacon?.(SCRIPT_URL, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-          return !!ok;
-        } catch { return false; }
-      }
+      return false;
     }
   }
 
@@ -461,6 +451,11 @@ window.addEventListener('resize', syncStickybarHeight);
 
   // 제출
   submitBtn.addEventListener('click', async () => {
+    if (isSubmitting) {
+      showSnack('이미 전송 중입니다. 잠시만 기다려주세요.', 'warn', 1400);
+      return;
+    }
+
     const msg = validate();
     if (msg) { showSnack(msg, 'warn'); vibrate(20); return; }
 
@@ -482,13 +477,24 @@ window.addEventListener('resize', syncStickybarHeight);
       agree23: agree23?.checked ? '동의하였습니다' : ''
     };
 
+    const now = Date.now();
+    const fingerprint = getPayloadFingerprint(payload);
+    if (fingerprint === lastSubmitFingerprint && (now - lastSubmitAt) < DUPLICATE_SUBMIT_MS) {
+      showSnack('같은 예약 정보가 이미 전송되었습니다.', 'warn', 1800);
+      vibrate(20);
+      return;
+    }
+
+    isSubmitting = true;
+    lastSubmitFingerprint = fingerprint;
+    lastSubmitAt = now;
     submitBtn.classList.add('loading');
     submitBtn.disabled = true;
 
     const ok = await sendPayload(payload);
 
+    isSubmitting = false;
     submitBtn.classList.remove('loading');
-    submitBtn.disabled = !isReadyToSubmit(); // 다시 상태 반영
 
     if (ok) {
       vibrate(15);
@@ -501,7 +507,7 @@ window.addEventListener('resize', syncStickybarHeight);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       showSnack('전송에 실패했습니다. 네트워크 상태 확인 후 다시 시도해주세요.', 'error', 2500);
-      submitBtn.disabled = false;
+      submitBtn.disabled = !isReadyToSubmit();
     }
   });
 
