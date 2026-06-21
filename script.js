@@ -1,5 +1,5 @@
 // ===== 환경 =====
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4rcopOrzwxow0IUrdQ3pbO-Es3XOGMc9o7hYEGaTgTJ5uinp5J-yS5ZZPfAzlAsETRw/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNWQaWiIqdtcsuU-udf-lWMNblEYT5v-pniVCp3gMp36S7q6e9AoSI5Lv9efWBt8Cozg/exec';
 const PRICE = { adult: 7000, youth: 5000 };
 const STORAGE_KEY = 'jb-reserve-draft-v3'; // v3: 디자인/UX 개선 반영
 
